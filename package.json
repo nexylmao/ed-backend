@@ -1,0 +1,43 @@
+{
+  "name": "elektronski-dnevnik-backend",
+  "version": "0.2.0",
+  "description": "elektronski-dnevnik-backend - backend deo zavrsnog projekta za MiBP 3. godina",
+  "main": "application.js",
+  "scripts": {
+    "start": "node application.js",
+    "dev": "NODE_ENV=development nodemon application.js",
+    "test": "xo"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nexylmao/elektronski-dnevnik-backend.git"
+  },
+  "keywords": [
+    "node",
+    "npm",
+    "backend",
+    "elektronski-dnevnik",
+    "MiBP3",
+    "nxy"
+  ],
+  "author": "nxy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nexylmao/elektronski-dnevnik-backend/issues"
+  },
+  "homepage": "https://github.com/nexylmao/elektronski-dnevnik-backend#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.2",
+    "cors": "^2.8.4",
+    "express": "^4.16.3",
+    "jsonwebtoken": "^8.2.1",
+    "moment": "^2.22.1",
+    "mongoose": "^5.0.17",
+    "mongoose-timestamp": "^0.6.0",
+    "mongoose-unique-validator": "^2.0.1",
+    "morgan": "^1.9.0",
+    "nodemon": "^1.17.3",
+    "sqreen": "^1.18.1"
+  }
+}
