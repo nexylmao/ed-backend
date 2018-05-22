@@ -9,13 +9,42 @@ const projection = {_id:0, updatedAt:0, __v:0};
 router.route('/')
     .get((req, res) => {
         mdlCon.setDBName(req.dbName);
-        var query = {givenTo: req.user.username};
-        if(req.user.accountType === 'Profesor') {
-            query = {givenBy: req.user.username};
+        
+        if(req.user.facility === req.class.facility && req.user.accountType !== 'Administrator') {
+            return res.status(400).send({
+                good: false,
+                message: 'You can\'t see grades for a class that is not in your facility!'
+            });
         }
+
+        var usernames = [];
+        var query = {};
+        if(req.user.accountType === 'Student') {
+            if(req.class.students.includes(req.user.username)) {
+                usernames.push(req.user.username);
+            }
+            query = {givenTo: {$in: usernames}};
+        }
+        if(req.user.accountType === 'Parent') {
+            req.user.children.forEach(elem => {
+                if(req.class.students.includes(elem)) {
+                    usernames.push(req.user.username);
+                }
+            });
+            query = {givenTo: {$in: usernames}};
+        }
+        if(req.user.accountType === 'Profesor') {
+            usernames = req.class.students;
+            query = {givenTo: {$in: usernames}, givenBy: req.user.username};
+        }
+        if(req.user.accountType === 'Moderator' || req.user.accountType === 'Administrator') {
+            usernames = req.class.students;
+            query = {givenTo: {$in: usernames}};
+        }        
+
         mdlCon.find(res, query, projection)
         .then(result => {
-            if(!result) {
+            if(!result || result.length === 0) {
                 return res.status(404).send({
                     good: false,
                     message: 'No grades found!'
