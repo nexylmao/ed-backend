@@ -9,8 +9,8 @@ const projection = {_id:0, updatedAt:0, __v:0};
 router.route('/')
     .get((req, res) => {
         mdlCon.setDBName(req.dbName);
-        
-        if(req.user.facility === req.class.facility && req.user.accountType !== 'Administrator') {
+
+        if(req.user.facility !== req.class.facility && req.user.accountType !== 'Administrator') {
             return res.status(400).send({
                 good: false,
                 message: 'You can\'t see grades for a class that is not in your facility!'
@@ -40,7 +40,7 @@ router.route('/')
         if(req.user.accountType === 'Moderator' || req.user.accountType === 'Administrator') {
             usernames = req.class.students;
             query = {givenTo: {$in: usernames}};
-        }        
+        }
 
         mdlCon.find(res, query, projection)
         .then(result => {
