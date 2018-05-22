@@ -7,20 +7,40 @@ const databaseName = Methods.user();
 module.exports = (req, res, next) => {
     let mf = new modelFunctions(User, databaseName);
     let af = new authFunctions();
-    af.Verify(res, req.headers['x-access-token'])
-    .then(result => {
-        mf.findOne(res, {_id: result.id})
+    try {
+        af.Verify(res, req.headers['x-access-token'])
         .then(result => {
-            if(!result) {
-                return res.status(404).send({
+            mf.findOne(res, {_id: result.id})
+            .then(result => {
+                if(!result) {
+                    return res.status(404).send({
+                        auth: false,
+                        message: 'You\'re not logged in!'
+                    });
+                }
+                else {
+                    req.user = result;
+                    next();
+                }
+            })
+            .catch(err => {
+                return res.status(500).send({
                     auth: false,
-                    message: 'You\'re not logged in!'
+                    message: 'Something went wrong while trying to identify you!'
                 });
-            }
-            else {
-                req.user = result;
-                next();
-            }
+            });
+        })
+        .catch(err => {
+            return res.status(500).send({
+                auth: false,
+                message: 'Something went wrong while trying to identify you!'
+            });
         });
-    });
+    }
+    catch (err) {
+        return res.status(500).send({
+            auth: false,
+            message: 'Something went wrong while trying to identify you!'
+        });
+    }
 }
