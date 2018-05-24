@@ -139,9 +139,10 @@ router.route('/me')
 		req.body._id ||
 		req.body.createdAt ||
 		req.body.updatedAt ||
-        req.body.username ||
-        req.body.children ||
-        req.body.facility ||
+		req.body.username ||
+		req.body.children ||
+		req.body.facility ||
+		req.body.class ||
 		req.body.password){
 			mdlCon.UpdateOne(req, res, req.user)
 			.then(result => {
