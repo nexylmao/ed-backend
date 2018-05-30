@@ -73,7 +73,7 @@ router.route('/type/:type')
             });
         }
         else {
-            mdlCon.find(res, {accountType: req.params.accountType}, {_id:0, password:0, __v:0})
+            mdlCon.find(res, {accountType: req.params.type}, {_id:0, password:0, __v:0})
             .then(result => {
                 if(!result) {
                     return res.status(404).send({
