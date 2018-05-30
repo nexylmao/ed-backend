@@ -13,7 +13,7 @@ router.route('/')
         if (req.user.accountType !== 'Student' && req.user.accountType !== 'Parent') {
             query = {};
         }
-        mdlCon.find(res, query, {_id:0, password:0, __v:0})
+        mdlCon.find(res, query, {_id:0, createdAt:0, updatedAt:0, password:0})
         .then(result => {
             if (!result) {
                 return res.status(404).send({
@@ -174,7 +174,7 @@ router.route('/:identification')
         if(req.user.accountType !== 'Student' || req.user.accountType !== 'Parent') {
             query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
         }
-        mdlCon.findOne(res, query, {_id:0, password:0, __v:0})
+        mdlCon.findOne(res, query, {_id:0, createdAt:0, updatedAt:0, password:0})
         .then(result => {
             if(!result) {
                 return res.status(404).send({
