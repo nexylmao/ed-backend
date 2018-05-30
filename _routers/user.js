@@ -330,12 +330,6 @@ router.route('/:identification/children')
                         message: 'No user found!'
                     });
                 }
-                if (result.facility !== req.user.facility && req.user.accountType === 'Moderator') {
-                    return res.status(400).send({
-                        good: false,
-                        message: 'You can\'t edit a parent that is not in your facility!'
-                    });
-                }
                 if (result.accountType !== 'Parent') {
                     return res.status(400).send({
                         good: false,
