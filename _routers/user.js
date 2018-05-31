@@ -134,7 +134,7 @@ router.route('/me')
 		});
 	})
 	.put((req, res) => {
-		if(req.body.accountType ||
+		if(!(req.body.accountType ||
 		req.body.__v ||
 		req.body._id ||
 		req.body.createdAt ||
@@ -143,7 +143,7 @@ router.route('/me')
 		req.body.children ||
 		req.body.facility ||
 		req.body.class ||
-		req.body.password){
+		req.body.password)){
 			mdlCon.UpdateOne(req, res, req.user)
 			.then(result => {
 				if (!result) {
