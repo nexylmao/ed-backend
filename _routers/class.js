@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const _ = require('underscore');
 
 const Class = require('../_models/classModel');
 const User = require('../_models/userModel');
@@ -68,6 +69,57 @@ router.route('/')
             });
         });
     })
+
+router.route('/my/classes')
+    .get((req, res) => {
+        mdlCon.setDBName(req.dbName);
+        if(req.user.accountType === 'Student') {
+            return res.status(200).send({
+                good: true,
+                data: [req.user.class]
+            });
+        }
+        if(req.user.accountType === 'Parent') {
+            UmdlCon.find(res, {username: {$in: req.user.children}}, projection)
+            .then(result => {
+                result = result.map(a => a.name);
+                return res.status(200).send({
+                    good: true,
+                    data: _.uniq(result)
+                });
+            });
+        };
+        if(req.user.accountType === 'Profesor') {
+            mdlCon.find(res, {subjects: {$elemMatch: {profesor: req.user.username}}}, projection)
+            .then(result => {
+                result = result.map(a => a.name);
+                return res.status(200).send({
+                    good: true,
+                    data: _.uniq(result)
+                });
+            });
+        };
+        if(req.user.accountType === 'Moderator') {
+            mdlCon.find(res, {facility: req.user.facility}, projection)
+            .then(result => {
+                result = result.map(a => a.name);
+                return res.status(200).send({
+                    good: true,
+                    data: _.uniq(result)
+                });
+            });
+        };
+        if(req.user.accountType === 'Administrator') {
+            mdlCon.find(res, {}, projection)
+            .then(result => {
+                result = result.map(a => a.name);
+                return res.status(200).send({
+                    good: true,
+                    data: _.uniq(result)
+                });
+            });
+        };
+    });
 
 router.route('/:identification')
     .get((req, res) => {
