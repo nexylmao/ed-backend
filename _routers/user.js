@@ -368,9 +368,6 @@ router.route('/:identification/children')
     .delete((req, res) => {
         if(req.user.accountType === 'Administrator' || req.user.accountType === 'Moderator') {
             var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
-            if(req.user.accountType === 'Student' || req.user.accountType === 'Parent') {
-                query.accountType = {$ne: 'Administrator'};
-            }
             mdlCon.findOne(res, query, {_id:0, createdAt:0, updatedAt:0, password:0})
             .then(result => {
                 if (!result) {
@@ -392,7 +389,7 @@ router.route('/:identification/children')
                     });
                 }
                 else {
-                    mdlCon.UpdateArray({$pop: {children: req.body.username}}, res, query)
+                    mdlCon.UpdateArray({$pop: {children: req.query.username}}, res, query)
                     .then(result3 => {
                         return res.status(200).send({
                             good: true,
