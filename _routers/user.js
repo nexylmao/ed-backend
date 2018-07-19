@@ -214,8 +214,6 @@ router.route('/me')
     })
 
 router.delete('/:identification/children', (req, res) => {
-    console.log('id/children!');
-    console.log(req.query);
     if(req.user.accountType === 'Administrator' || req.user.accountType === 'Moderator') {
         var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
         mdlCon.findOne(res, query, {_id:0, createdAt:0, updatedAt:0, password:0})
@@ -379,7 +377,6 @@ router.route('/:identification')
         }
 	})
 	.delete((req, res) => {
-        console.log('id!');
 		if (req.user.accountType === 'Administrator' || (
             req.user.accountType === 'Moderator' && (
                 req.body.accountType !== 'Administrator' &&
