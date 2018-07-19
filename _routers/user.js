@@ -30,12 +30,6 @@ router.route('/updateEveryoneForMePlease')
                                     message: 'No users found!'
                                 });
                             }
-                            else {
-                                return res.status(200).send({
-                                    good: true,
-                                    data: result
-                                });
-                            }
                         });
                     }
                 });
