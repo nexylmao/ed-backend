@@ -28,16 +28,24 @@ router.route('/')
         });
     })
     .post((req, res) => {
-        mdlCon.create(req, res)
-        .then(result => {
-            var object = {};
-            object.body = {facility: result.shortname};
-            UmdlCon.UpdateOne(object, res, {username: result.principal});
-            return res.status(200).send({
-                good: true,
-                data: result
+        if(req.user.accountType === 'Administrator') {
+            mdlCon.create(req, res)
+            .then(result => {
+                var object = {};
+                object.body = {facility: result.shortname};
+                UmdlCon.UpdateOne(object, res, {username: result.principal});
+                return res.status(200).send({
+                    good: true,
+                    data: result
+                });
             });
-        })
+        }
+        else {
+            return res.status(403).send({
+                good: false,
+                message: 'You don\'t have permission to do that!'
+            });
+        }
     })
 
 router.route('/:identification')
