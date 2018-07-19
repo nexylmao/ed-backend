@@ -34,7 +34,7 @@ const _user = new mongoose.Schema({
 	},
 	backgroundPicture: {
 		type: String,
-		default: 'http://papers.co/wallpaper/papers.co-ns23-night-sky-sunset-pink-nature-36-3840x2400-4k-wallpaper.jpg'
+		default: 'https://image.ibb.co/i2Vy3d/rsz_1papersco_ns23_night_sky_sunset_pink_nature_36_3840x2400_4k_wallpaper.jpg'
 	}
 }, {collection: 'users'});
 

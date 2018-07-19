@@ -7,6 +7,27 @@ const modelController = require('../_prototypes/modelFunctions');
 const mdlCon = new modelController(User, Methods.user());
 const FmdlCon = new modelController(Facility, Methods.data());
 
+router.route('/updateEveryoneForMePlease')
+    .get((req, res) => {
+        var query = {backgroundPicture: 'http://papers.co/wallpaper/papers.co-ns23-night-sky-sunset-pink-nature-36-3840x2400-4k-wallpaper.jpg'};
+        var update = {backgroundPicture: 'https://image.ibb.co/i2Vy3d/rsz_1papersco_ns23_night_sky_sunset_pink_nature_36_3840x2400_4k_wallpaper.jpg'};
+        mdlCon.Update({body: update}, res, query)
+        .then(result => {
+            if(!result) {
+                return res.status(404).send({
+                    good: false,
+                    message: 'No users found!'
+                });
+            }
+            else {
+                return res.status(200).send({
+                    good: true,
+                    data: result
+                });
+            }
+        });
+    });
+
 router.route('/')
     .get((req, res) => {
         var query = {accountType: {$ne: 'Administrator'}};
@@ -168,85 +189,7 @@ router.route('/me')
 		}
 	})
 
-router.route('/:identification')
-    .get((req, res) => {
-        var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}],accountType: {$ne: 'Administrator'}};
-        if(req.user.accountType !== 'Student' || req.user.accountType !== 'Parent') {
-            query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
-        }
-        mdlCon.findOne(res, query, {_id:0, createdAt:0, updatedAt:0, password:0})
-        .then(result => {
-            if(!result) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'No users found!'
-                });
-            }
-            else {
-                return res.status(200).send({
-                    good: true,
-                    data: result
-                });
-            }
-        });
-    })
-    .put((req, res) => {
-        if (req.user.accountType === 'Administrator') {
-            var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
-            mdlCon.UpdateOne(req, res, query)
-            .then(result => {
-				if (!result) {
-					return res.status(404).send({
-						good: false,
-						message: 'No user was found!'
-					});
-				}
-                return res.status(200).send({
-                    good: true,
-                    data: result
-                });
-            });
-        }
-        else {
-            return res.status(401).send({
-                good: false,
-                message: 'You don\'t have permission for this!'
-            });
-        }
-	})
-	.delete((req, res) => {
-		if (req.user.accountType === 'Administrator' || (
-            req.user.accountType === 'Moderator' && (
-                req.body.accountType !== 'Administrator' &&
-                req.body.accountType !== 'Moderator'
-            )
-        )) {
-			var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
-			mdlCon.DeleteOne(res, query)
-			.then(result => {
-				if(!result) {
-					return res.status(404).send({
-						good: false,
-						message: 'No user was found!'
-					});
-                } 
-                else {
-					return res.status(200).send({
-						good: true,
-						data: result
-					});
-				}
-			});
-		}
-		else {
-			return res.status(401).send({
-                good: false,
-                message: 'You don\'t have permission for this!'
-            });
-		}
-	})
-
-router.route('/:identification/facility')
+    router.route('/:identification/facility')
     .put((req, res) => {
         if(req.user.accountType === 'Administrator') {
             var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}],accountType: {$ne: 'Administrator'}};
@@ -366,11 +309,12 @@ router.route('/:identification/children')
         }
     })
     .delete((req, res) => {
+        console.log('hello!');
         if(req.user.accountType === 'Administrator' || req.user.accountType === 'Moderator') {
             var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
             mdlCon.findOne(res, query, {_id:0, createdAt:0, updatedAt:0, password:0})
             .then(result => {
-                if (!result) {
+                if (!result) { 
                     return res.status(404).send({
                         good: false,
                         message: 'No user found!'
@@ -406,5 +350,84 @@ router.route('/:identification/children')
 			});
         }
     })
+
+router.route('/:identification')
+    .get((req, res) => {
+        var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}],accountType: {$ne: 'Administrator'}};
+        if(req.user.accountType !== 'Student' || req.user.accountType !== 'Parent') {
+            query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
+        }
+        mdlCon.findOne(res, query, {_id:0, createdAt:0, updatedAt:0, password:0})
+        .then(result => {
+            if(!result) {
+                return res.status(404).send({
+                    good: false,
+                    message: 'No users found!'
+                });
+            }
+            else {
+                return res.status(200).send({
+                    good: true,
+                    data: result
+                });
+            }
+        });
+    })
+    .put((req, res) => {
+        if (req.user.accountType === 'Administrator') {
+            var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
+            mdlCon.UpdateOne(req, res, query)
+            .then(result => {
+				if (!result) {
+					return res.status(404).send({
+						good: false,
+						message: 'No user was found!'
+					});
+				}
+                return res.status(200).send({
+                    good: true,
+                    data: result
+                });
+            });
+        }
+        else {
+            return res.status(401).send({
+                good: false,
+                message: 'You don\'t have permission for this!'
+            });
+        }
+	})
+	.delete((req, res) => {
+        console.log('hello!');
+		if (req.user.accountType === 'Administrator' || (
+            req.user.accountType === 'Moderator' && (
+                req.body.accountType !== 'Administrator' &&
+                req.body.accountType !== 'Moderator'
+            )
+        )) {
+			var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
+			mdlCon.DeleteOne(res, query)
+			.then(result => {
+				if(!result) {
+					return res.status(404).send({
+						good: false,
+						message: 'No user was found!'
+					});
+                } 
+                else {
+					return res.status(200).send({
+						good: true,
+						data: result
+					});
+				}
+			});
+		}
+		else {
+			return res.status(401).send({
+                good: false,
+                message: 'You don\'t have permission for this!'
+            });
+		}
+	})
 
 module.exports = router;

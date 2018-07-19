@@ -67,6 +67,22 @@ ModelController.prototype.create = function(req, res){
         })
     });
 }
+ModelController.prototype.Update = function(req, res, query){
+    return new Promise(resolve => {
+        mngCon.Connect(res, this.MongoDatabaseName)
+        .then(() => {
+            this.MongooseModel.update(query, req.body, {new: true})
+            .then(result => {
+                resolve(result);
+                mngCon.Disconnect();
+            })
+            .catch(err => {
+                errHndl.Handle(res, 'Something went wrong while updating a document in the database!', err);
+                mngCon.Disconnect();
+            });
+        })
+    });
+}
 ModelController.prototype.UpdateOne = function(req, res, query){
     return new Promise(resolve => {
         mngCon.Connect(res, this.MongoDatabaseName)

@@ -1,4 +1,3 @@
-require('sqreen');
 const application = require('express')();
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -17,6 +16,9 @@ application.use(bodyParser.urlencoded({extended: false}));
 if(EnviromentVariables.NODE_ENV === 'development') {
     const morgan = require('morgan');
     application.use(morgan('dev'));
+}
+else {
+    require('sqreen');
 }
 
 const authRouter = require('./_routers/auth');
