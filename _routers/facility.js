@@ -221,7 +221,7 @@ router.route('/:identification/profesors')
         });
     }
     var query = {$or: [{shortname:req.params.identification},{name:req.params.identification},{principal:req.params.identification}]};
-    UmdlCon.findOne(res, {username: req.body.username}, projection)
+    UmdlCon.findOne(res, {username: req.query.username}, projection)
     .then(result => {
         if(!result) {
             return res.status(404).send({
@@ -237,7 +237,7 @@ router.route('/:identification/profesors')
         }
         mdlCon.findOne(res, query, projection)
         .then(result => {
-            if(!result.profesors.includes(req.body.username)) {
+            if(!result.profesors.includes(req.query.username)) {
                 return res.status(404).send({
                     good: false,
                     message: 'That profesor isn\'t part of this facility!'
@@ -247,7 +247,7 @@ router.route('/:identification/profesors')
                 (req.user.accountType === 'Moderator' &&
                 req.user.facility === result.shortname
             )) {
-                mdlCon.UpdateArray({$pullAll:{profesors:req.body.username}}, res, query)
+                mdlCon.UpdateArray({$pullAll:{profesors:req.query.username}}, res, query)
                 .then(result => {
                     if(!result) {
                         return res.status(404).send({
@@ -256,7 +256,7 @@ router.route('/:identification/profesors')
                         });
                     }
                     else {
-                        UmdlCon.UpdateOne({body: {facility:''}}, res, {username: req.body.username});
+                        UmdlCon.UpdateOne({body: {facility:''}}, res, {username: req.query.username});
                         return res.status(200).send({
                             good: true,
                             data: result
