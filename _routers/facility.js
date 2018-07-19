@@ -247,7 +247,7 @@ router.route('/:identification/profesors')
                 (req.user.accountType === 'Moderator' &&
                 req.user.facility === result.shortname
             )) {
-                mdlCon.UpdateArray({$pop:{profesors:req.body.username}}, res, query)
+                mdlCon.UpdateArray({$pullAll:{profesors:req.body.username}}, res, query)
                 .then(result => {
                     if(!result) {
                         return res.status(404).send({

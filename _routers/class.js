@@ -380,7 +380,7 @@ router.route('/:identification/students')
                     message: 'You can\'t edit a class that is not in your facility!'
                 });
             }
-            mdlCon.UpdateArray({$pop:{students:req.body.username}}, res, query)
+            mdlCon.UpdateArray({$pullAll:{students:req.body.username}}, res, query)
             .then(result => {
                 if(!result) {
                     return res.status(404).send({
