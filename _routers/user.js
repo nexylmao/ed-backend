@@ -11,7 +11,7 @@ router.route('/updateEveryoneForMePlease')
     .get((req, res) => {
         var query = {backgroundPicture: 'http://papers.co/wallpaper/papers.co-ns23-night-sky-sunset-pink-nature-36-3840x2400-4k-wallpaper.jpg'};
         var update = {backgroundPicture: 'https://image.ibb.co/i2Vy3d/rsz_1papersco_ns23_night_sky_sunset_pink_nature_36_3840x2400_4k_wallpaper.jpg'};
-        mdlCon.Update({body: update}, res, query)
+        mdlCon.find(res, {}, {})
         .then(result => {
             if(!result) {
                 return res.status(404).send({
@@ -20,9 +20,22 @@ router.route('/updateEveryoneForMePlease')
                 });
             }
             else {
-                return res.status(200).send({
-                    good: true,
-                    data: result
+                result.forEach(element => {
+                    mdlCon.UpdateOne({body: update}, res, result)
+                    .then(result => {
+                        if(!result) {
+                            return res.status(404).send({
+                                good: false,
+                                message: 'No users found!'
+                            });
+                        }
+                        else {
+                            return res.status(200).send({
+                                good: true,
+                                data: result
+                            });
+                        }
+                    });
                 });
             }
         });
