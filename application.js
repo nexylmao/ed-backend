@@ -1,6 +1,17 @@
+var morgan;
+if(process.env.NODE_ENV === 'development') {
+    morgan = require('morgan');
+}
+else {
+    require('sqreen');
+}
 const application = require('express')();
 const bodyParser = require('body-parser');
 const cors = require('cors');
+
+if(process.env.NODE_ENV === 'development') {
+    application.use(morgan('dev'));
+}
 
 const EnviromentVariables = require('./_env/env');
 const ErrorHandler = require('./_prototypes/errorHandler');
@@ -12,14 +23,6 @@ const ReqClassMethod = require('./_methods/gradeGivingClass');
 application.use(cors());
 application.use(bodyParser.json());
 application.use(bodyParser.urlencoded({extended: false}));
-
-if(EnviromentVariables.NODE_ENV === 'development') {
-    const morgan = require('morgan');
-    application.use(morgan('dev'));
-}
-else {
-    require('sqreen');
-}
 
 const authRouter = require('./_routers/auth');
 application.use('/auth', authRouter);

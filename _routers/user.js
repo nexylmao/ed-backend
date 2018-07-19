@@ -213,6 +213,50 @@ router.route('/me')
         }
     })
 
+router.delete('/:identification/children', (req, res) => {
+    console.log('id/children!');
+    console.log(req.query);
+    if(req.user.accountType === 'Administrator' || req.user.accountType === 'Moderator') {
+        var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
+        mdlCon.findOne(res, query, {_id:0, createdAt:0, updatedAt:0, password:0})
+        .then(result => {
+            if (!result) { 
+                return res.status(404).send({
+                    good: false,
+                    message: 'No user found!'
+                });
+            }
+            if (result.facility !== req.user.facility && req.user.accountType === 'Moderator') {
+                return res.status(400).send({
+                    good: false,
+                    message: 'You can\'t edit a parent that is not in your facility!'
+                });
+            }
+            if (result.accountType !== 'Parent') {
+                return res.status(400).send({
+                    good: false,
+                    message: 'You can\'t delete a child from a non-parent account!'
+                });
+            }
+            else {
+                mdlCon.UpdateArray({$pullAll: {children: [req.query.username]}}, res, query)
+                .then(result3 => {
+                    return res.status(200).send({
+                        good: true,
+                        data: result3
+                    });
+                });
+            }
+        });
+    }
+    else {
+        return res.status(401).send({
+            good: false,
+            message: 'You don\'t have permission to do that!'
+        });
+    }
+})
+
 router.route('/:identification/children')
     .get((req, res) => {
         var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
@@ -287,48 +331,6 @@ router.route('/:identification/children')
 			});
         }
     })
-    .delete((req, res) => {
-        console.log('hello!');
-        if(req.user.accountType === 'Administrator' || req.user.accountType === 'Moderator') {
-            var query = {$or : [{username: req.params.identification},{fullname: req.params.identification},{email: req.params.identification}]};
-            mdlCon.findOne(res, query, {_id:0, createdAt:0, updatedAt:0, password:0})
-            .then(result => {
-                if (!result) { 
-                    return res.status(404).send({
-                        good: false,
-                        message: 'No user found!'
-                    });
-                }
-                if (result.facility !== req.user.facility && req.user.accountType === 'Moderator') {
-                    return res.status(400).send({
-                        good: false,
-                        message: 'You can\'t edit a parent that is not in your facility!'
-                    });
-                }
-                if (result.accountType !== 'Parent') {
-                    return res.status(400).send({
-                        good: false,
-                        message: 'You can\'t delete a child from a non-parent account!'
-                    });
-                }
-                else {
-                    mdlCon.UpdateArray({$pop: {children: req.query.username}}, res, query)
-                    .then(result3 => {
-                        return res.status(200).send({
-                            good: true,
-                            data: result3
-                        });
-                    });
-                }
-            });
-        }
-        else {
-            return res.status(401).send({
-				good: false,
-				message: 'You don\'t have permission to do that!'
-			});
-        }
-    })
 
 router.route('/:identification')
     .get((req, res) => {
@@ -377,7 +379,7 @@ router.route('/:identification')
         }
 	})
 	.delete((req, res) => {
-        console.log('hello!');
+        console.log('id!');
 		if (req.user.accountType === 'Administrator' || (
             req.user.accountType === 'Moderator' && (
                 req.body.accountType !== 'Administrator' &&
