@@ -21,21 +21,23 @@ router.route('/updateEveryoneForMePlease')
             }
             else {
                 result.forEach(element => {
-                    mdlCon.UpdateOne({body: update}, res, result)
-                    .then(result => {
-                        if(!result) {
-                            return res.status(404).send({
-                                good: false,
-                                message: 'No users found!'
-                            });
-                        }
-                        else {
-                            return res.status(200).send({
-                                good: true,
-                                data: result
-                            });
-                        }
-                    });
+                    if(element.backgroundPicture === query.backgroundPicture) {
+                        mdlCon.UpdateOne({body: update}, res, result)
+                        .then(result => {
+                            if(!result) {
+                                return res.status(404).send({
+                                    good: false,
+                                    message: 'No users found!'
+                                });
+                            }
+                            else {
+                                return res.status(200).send({
+                                    good: true,
+                                    data: result
+                                });
+                            }
+                        });
+                    }
                 });
             }
         });
