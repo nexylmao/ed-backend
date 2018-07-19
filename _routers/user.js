@@ -7,36 +7,6 @@ const modelController = require('../_prototypes/modelFunctions');
 const mdlCon = new modelController(User, Methods.user());
 const FmdlCon = new modelController(Facility, Methods.data());
 
-router.route('/updateEveryoneForMePlease')
-    .get((req, res) => {
-        var query = {backgroundPicture: 'http://papers.co/wallpaper/papers.co-ns23-night-sky-sunset-pink-nature-36-3840x2400-4k-wallpaper.jpg'};
-        var update = {backgroundPicture: 'https://image.ibb.co/i2Vy3d/rsz_1papersco_ns23_night_sky_sunset_pink_nature_36_3840x2400_4k_wallpaper.jpg'};
-        mdlCon.find(res, {}, {})
-        .then(result => {
-            if(!result) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'No users found!'
-                });
-            }
-            else {
-                result.forEach(element => {
-                    if(element.backgroundPicture === query.backgroundPicture) {
-                        mdlCon.UpdateOne({body: update}, res, result)
-                        .then(result => {
-                            if(!result) {
-                                return res.status(404).send({
-                                    good: false,
-                                    message: 'No users found!'
-                                });
-                            }
-                        });
-                    }
-                });
-            }
-        });
-    });
-
 router.route('/')
     .get((req, res) => {
         var query = {accountType: {$ne: 'Administrator'}};
