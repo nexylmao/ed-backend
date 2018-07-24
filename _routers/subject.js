@@ -232,7 +232,7 @@ router.route('/:identification/profesors')
             });
         }
         mdlCon.setDBName(req.dbName);
-        UmdlCon.findOne(res, {username: req.body.username}, projection)
+        UmdlCon.findOne(res, {username: req.query.username}, projection)
         .then(result => {
             if(!result) {
                 return res.status(404).send({
@@ -260,7 +260,7 @@ router.route('/:identification/profesors')
                         message: 'Didn\'t find the subject you are looking for!'
                     });
                 }
-                if(!result.profesors.includes(req.body.username)) {
+                if(!result.profesors.includes(req.query.username)) {
                     return res.status(400).send({
                         good: false,
                         message: 'That professor doesn\'t teach that subject!'
