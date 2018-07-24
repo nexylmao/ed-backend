@@ -193,14 +193,14 @@ router.route('/:identification/profesors')
                 });
             }
             mdlCon.findOne(res, {shortname: req.params.identification}, projection)
-            .then(result => {
-                if(!result) {
+            .then(result2 => {
+                if(!result2) {
                     return res.status(404).send({
                         good: false,
                         message: 'Didn\'t find the subject you are looking for!'
                     });
                 }
-                if(result.profesors.includes(req.body.username)) {
+                if(result2.profesors.includes(req.body.username)) {
                     return res.status(400).send({
                         good: false,
                         message: 'That professor already teaches that subject!'
