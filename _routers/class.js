@@ -49,25 +49,31 @@ router.route('/')
         UmdlCon.findOne(res, {username: req.body.homeTeacher}, projection)
         .then(result => {
             if(!result) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'The user you provided doesn\'t exist!'
-                });
+                throw {
+                    message: 'The user you provided doesn\'t exist!',
+                    code: 400
+                }
             }
             if(result.accountType !== 'Profesor') {
-                return res.status(404).send({
-                    good: false,
-                    message: 'The user you provided is not a profesor!'
-                });
+                throw {
+                    message: 'The user you provided is not a profesor!',
+                    code: 400
+                }
             }
-            mdlCon.create(req, res)
-            .then(result => {
-                return res.status(200).send({
-                    good: true,
-                    data: result
-                });
+            return mdlCon.create(req, res);
+        })
+        .then(result => {
+            return res.status(200).send({
+                good: true,
+                data: result
             });
-        });
+        })
+        .catch(err => {
+            return res.status(err.code).send({
+                good: false,
+                message: err.message
+            });
+        })
     })
 
 router.route('/my/classes')
@@ -157,16 +163,16 @@ router.route('/:identification')
         mdlCon.findOne(res, query, projection)
         .then(result1 => {
             if(!result1) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'No class found!'
-                });
+                throw {
+                    message: 'No class found!',
+                    code: 404
+                }
             }
             if(req.user.accountType === 'Moderator' && req.user.facility !== result.facility) {
-                return res.status(400).send({
-                    good: false,
-                    message: 'You can\'t edit a class in facility you\'re not a part of!'
-                });
+                throw {
+                    message: 'You can\'t edit a class in facility you\'re not a part of!',
+                    code: 400
+                }
             }
             if(req.body._id ||
             req.body.createdAt ||
@@ -174,52 +180,49 @@ router.route('/:identification')
             req.body.__v ||
             req.body.name ||
             req.body.facility) {
-                return res.status(400).send({
-                    good: false,
-                    message: 'You can\'t do that!'
-                });
+                throw {
+                    message: 'You can\'t do that!',
+                    code: 400
+                }
             } 
             else {
                 if(req.body.homeTeacher) {
                     UmdlCon.findOne(res, {username: req.body.homeTeacher}, projection)
                     .then(result2 => {
                         if(!result2) {
-                            return res.status(404).send({
-                                good: false,
-                                message: 'The user you provided doesn\'t exist!'
-                            });
+                            throw {
+                                message: 'The user you provided doesn\'t exist!',
+                                code: 404
+                            }
                         }
                         if(result2.accountType !== 'Profesor') {
-                            return res.status(404).send({
-                                good: false,
-                                message: 'The user you provided is not a profesor!'
-                            });
+                            throw {
+                                message: 'The user you provided is not a profesor!',
+                                code: 400
+                            }
                         }
                         if(result2.facility !== result1.facility) {
-                            return res.status(400).send({
-                                good: false,
-                                message: 'You can\'t assign a profesor that\'s not a part of the classes facility!'
-                            });
+                            throw {
+                                message: 'You can\'t assign a profesor that\'s not a part of the classes facility!',
+                                code: 400
+                            }
                         }
-                        mdlCon.UpdateOne(req, res, query)
-                        .then(result3 => {
-                            return res.status(200).send({
-                                good: true,
-                                data: result3
-                            });
-                        });
                     });
                 }
-                else {
-                    mdlCon.UpdateOne(req, res, query)
-                    .then(result => {
-                        return res.status(200).send({
-                            good: true,
-                            data: result
-                        });
-                    });
-                }
+                return mdlCon.UpdateOne(req, res, query);
             }
+        })
+        .then(result => {
+            return res.status(200).send({
+                good: true,
+                data: result
+            });
+        })
+        .catch(err => {
+            return res.status(err.code).send({
+                good: false,
+                message: err.message
+            });
         });
     })
     .delete((req, res) => {
@@ -237,31 +240,37 @@ router.route('/:identification')
         mdlCon.findOne(res, query, projection)
         .then(result1 => {
             if(!result1) {
-                return res.status(404).send({
-                    good: false,
+                throw {
+                    code: 404,
                     message: 'No class found!'
-                });
+                }
             }
             if(result1.facility !== req.user.facility && req.user.accountType === 'Moderator') {
-                return res.status(400).send({
-                    good: false,
+                throw {
+                    code: 400,
                     message: 'You can\'t delete a class in facility you\'re not a part of!'
+                }
+            }
+            return mdlCon.DeleteOne(res, query);
+        })
+        .then(result => {
+            if(!result) {
+                throw {
+                    message: 'No class found!',
+                    code: 404
+                }
+            }
+            else {
+                return res.status(200).send({
+                    good: true,
+                    data: result
                 });
             }
-            mdlCon.DeleteOne(res, query)
-            .then(result => {
-                if(!result) {
-                    return res.status(404).send({
-                        good: false,
-                        message: 'No class found!'
-                    });
-                }
-                else {
-                    return res.status(200).send({
-                        good: true,
-                        data: result
-                    });
-                }
+        })
+        .catch(err => {
+            return res.status(err.code).send({
+                good: false,
+                message: err.message
             });
         });
     })
@@ -296,61 +305,69 @@ router.route('/:identification/students')
         }
         mdlCon.setDBName(req.dbName);
         var query = {name: req.params.identification, facility: req.user.facility};
+        var classid;
         if(req.user.accountType === 'Administrator'){
             query = {name: req.params.identification};
         }
         mdlCon.findOne(res, query, projection)
         .then(result => {
             if(!result) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'No class found!'
-                });
+                throw {
+                    message: 'No class found!',
+                    code: 404
+                }
             }
+            classid = result;
             if(req.user.accountType === 'Moderator' && result.facility !== req.user.facility) {
-                return res.status(400).send({
-                    good: false,
-                    message: 'You can\'t edit a class that is not in your facility!'
+                throw {
+                    message: 'You can\'t edit a class that is not in your facility!',
+                    code: 400
+                }
+            }
+            return UmdlCon.findOne(res, {username: req.body.username}, projection);
+        })
+        .then(result1 => {
+            if(!result1) {
+                throw {
+                    message: 'No user you provided was found!',
+                    code: 404
+                }
+            }
+            if(result1.accountType !== 'Student'){
+                throw {
+                    message: 'User you provided is not a student!',
+                    code: 400
+                }
+            }
+            if(result1.facility !== classid.facility) {
+                throw {
+                    message: 'Student you provided is not a part of the class you want to put it in!',
+                    code: 400
+                }
+            }
+            else {
+                return mdlCon.UpdateArray({$push:{students:result1.username}}, res, query);
+            }
+        })
+        .then(result => {
+            if(!result) {
+                throw {
+                    message: 'No class was found!',
+                    code: 404
+                }
+            }
+            else {
+                UmdlCon.UpdateOne({body:{class:req.params.identification}}, res, {username: req.body.username});
+                return res.status(200).send({
+                    good: true,
+                    data: result
                 });
             }
-            UmdlCon.findOne(res, {username: req.body.username}, projection)
-            .then(result1 => {
-                if(!result1) {
-                    return res.status(404).send({
-                        good: false,
-                        message: 'No user you provided was found!'
-                    });
-                }
-                if(result1.accountType !== 'Student'){
-                    return res.status(400).send({
-                        good: false,
-                        message: 'User you provided is not a student!'
-                    });
-                }
-                if(result1.facility !== result.facility) {
-                    return res.status(400).send({
-                        good: false,
-                        message: 'Student you provided is not a part of the facility you are!'
-                    });
-                }
-                else {
-                    mdlCon.UpdateArray({$push:{students:result1.username}}, res, query)
-                    .then(result => {
-                        if(!result) {
-                            return res.status(404).send({
-                                good: false,
-                                message: 'No class was found!'
-                            });
-                        }
-                        else {
-                            UmdlCon.UpdateOne({body:{class:result.name}}, res, {username: result1.username});
-                            return res.status(200).send({
-                                good: true,
-                                data: result
-                            });
-                        }
-                    })
-                }
+        })
+        .catch(err => {
+            return res.status(err.code).send({
+                good: false,
+                message: err.message
             });
         });
     })
@@ -369,32 +386,40 @@ router.route('/:identification/students')
         mdlCon.findOne(res, query, projection)
         .then(result => {
             if(!result) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'No class found!'
-                });
+                throw {
+                    message: 'No class found!',
+                    code: 404
+                }
             }
             if(req.user.accountType === 'Moderator' && result.facility !== req.user.facility) {
-                return res.status(400).send({
-                    good: false,
-                    message: 'You can\'t edit a class that is not in your facility!'
-                });
+                throw {
+                    message: 'You can\'t edit a class that is not in your facility!',
+                    code: 400
+                }
             }
-            mdlCon.UpdateArray({$pullAll:{students:req.body.username}}, res, query)
-            .then(result => {
-                if(!result) {
-                    return res.status(404).send({
-                        good: false,
-                        message: 'No class was found!'
-                    });
+            return mdlCon.UpdateArray({$pullAll:{students:req.body.username}}, res, query);
+        })
+        .then(result => {
+            if(!result) {
+                throw {
+                    message: 'No class was found!',
+                    code: 404
                 }
-                else {
-                    UmdlCon.UpdateOne({body: {class:''}}, res, {username: req.body.username});
-                    return res.status(200).send({
-                        good: true,
-                        data: result
-                    });
-                }
+            }
+            else {
+                return UmdlCon.UpdateOne({body: {class:''}}, res, {username: req.body.username});
+            }
+        })
+        .then(result => {
+            return res.status(200).send({
+                good: true,
+                data: result
+            });
+        })
+        .catch(err => {
+            return res.status(err.code).send({
+                good: false,
+                message: err.message
             });
         });
     })
@@ -410,37 +435,43 @@ router.get('/:identification/students/preput', (req, res) => {
         mdlCon.findOne(res, {name: req.params.identification}, projection)
         .then(result => {
             if(!result) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'The class you are looking for doesn\'t exist!'
-                });
+                throw {
+                    message: 'The class you are looking for doesn\'t exist!',
+                    code: 404
+                }
             }
             if(req.user.accountType === 'Moderator' && result.facility !== req.user.facility) {
-                return res.status(400).send({
-                    good: false,
-                    message: 'You can\'t edit a class that is not in your facility!'
-                });
+                throw {
+                    message: 'You can\'t edit a class that is not in your facility!',
+                    code: 400
+                }
             }
             var query = {username: {$nin: result.students}, class: ''};
             if(req.user.accountType === 'Moderator') {
                 query.facility = req.user.facility;
             }
-            UmdlCon.find(res, query, projection)
-            .then(result => {
-                if(!result || result.length === 0) {
-                    return res.status(404).send({
-                        good: false,
-                        message: 'Didn\'t find any students viable to add!'
-                    });
+            return UmdlCon.find(res, query, projection);
+        })
+        .then(result => {
+            if(!result || result.length === 0) {
+                throw {
+                    message: 'Didn\'t find any students viable to add!',
+                    code: 404
                 }
-                else {
-                    return res.status(200).send({
-                        good: true,
-                        data: {
-                            choices: result.map(a => a.username)
-                        }
-                    });
-                }
+            }
+            else {
+                return res.status(200).send({
+                    good: true,
+                    data: {
+                        choices: result.map(a => a.username)
+                    }
+                });
+            }
+        })
+        .catch(err => {
+            return res.status(err.code).send({
+                good: false,
+                message: err.message
             });
         });
     }
@@ -514,87 +545,93 @@ router.route('/:identification/subjects')
         mdlCon.findOne(res, query, projection)
         .then(result => {
             if(!result) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'No class found!'
-                });
+                throw {
+                    message: 'No class found!',
+                    code: 404
+                }
             }
             if(result.facility !== req.user.facility && req.user.accountType === 'Moderator') {
-                return res.status(400).send({
-                    good: false,
-                    message: 'You can\'t edit a class that is not in your facility!'
-                });
+                throw {
+                    message: 'You can\'t edit a class that is not in your facility!',
+                    code: 400
+                }
             }
             let query2 = query;
             query2.subjects = {$elemMatch: {subject: req.body.shortname, profesor: req.body.username}};
-            mdlCon.findOne(res, query2, {subjects: 1})
-            .then(result => {
-                if(result) {
-                    return res.status(400).send({
-                        good: false,
-                        message: 'That teacher already teaches that subject in this class!'
-                    });
+            return mdlCon.findOne(res, query2, {subjects: 1});
+        })
+        .then(result => {
+            if(result) {
+                throw {
+                    message: 'That teacher already teaches that subject in this class!',
+                    code: 400
                 }
-                SmdlCon.setDBName(req.dbName);
-                UmdlCon.findOne(res, {username: req.body.username}, projection)
-                .then(result1 => {
-                    if(!result1) {
-                        return res.status(404).send({
-                            good: false,
-                            message: 'No user you provided was found!'
-                        });
-                    }
-                    if(result1.accountType !== 'Profesor'){
-                        return res.status(400).send({
-                            good: false,
-                            message: 'User you provided is not a profesor!'
-                        });
-                    }
-                    if(result1.facility !== result.facility) {
-                        return res.status(400).send({
-                            good: false,
-                            message: 'Profesor you provided is not a part of the facility you are!'
-                        });
-                    }
-                    else {
-                        SmdlCon.findOne(res, {shortname: req.body.shortname}, projection)
-                        .then(result2 => {
-                            if(!result2) {
-                                return res.status(404).send({
-                                    good: false,
-                                    message: 'No subject was found!'
-                                });
-                            }
-                            if(!(result2.profesors.includes(result1.username))) {
-                                return res.status(400).send({
-                                    good: false,
-                                    message: 'The profesor you provided doesn\'t teach that subject!'
-                                });
-                            }
-                            else {
-                                var object = {
-                                    profesor: req.body.username,
-                                    subject: req.body.shortname
-                                };
-                                mdlCon.UpdateArray({$push:{subjects:object}}, res, query)
-                                .then(result => {
-                                    if(!result) {
-                                        return res.status(404).send({
-                                            good: false,
-                                            message: 'No class was found!'
-                                        });
-                                    }
-                                    else {
-                                        return res.status(200).send({
-                                            good: true,
-                                            data: result
-                                        });
-                                    }
-                                })
-                            }
-                        });
-                    }
+            }
+            SmdlCon.setDBName(req.dbName);
+            return UmdlCon.findOne(res, {username: req.body.username}, projection);
+        })
+        .then(result1 => {
+            if(!result1) {
+                throw {
+                    message: 'No user you provided was found!',
+                    code: 404
+                }
+            }
+            if(result1.accountType !== 'Profesor'){
+                throw {
+                    message: 'User you provided is not a profesor!',
+                    code: 400
+                }
+            }
+            if(result1.facility !== req.user.facility) {
+                throw {
+                    message: 'Profesor you provided is not a part of the facility you are!',
+                    code: 400
+                }
+            }
+            else {
+                return SmdlCon.findOne(res, {shortname: req.body.shortname}, projection);
+            }
+        })
+        .then(result2 => {
+            if(!result2) {
+                throw {
+                    message: 'No subject was found!',
+                    code: 404
+                }
+            }
+            if(!(result2.profesors.includes(req.body.username))) {
+                throw {
+                    message: 'The profesor you provided doesn\'t teach that subject!',
+                    code: 400
+                }
+            }
+            else {
+                var object = {
+                    profesor: req.body.username,
+                    subject: req.body.shortname
+                };
+                return mdlCon.UpdateArray({$push:{subjects:object}}, res, query);
+            }
+        })
+        .then(result => {
+            if(!result) {
+                throw {
+                    message: 'No class was found!',
+                    code: 404
+                }
+            }
+            else {
+                return res.status(200).send({
+                    good: true,
+                    data: result
                 });
+            }
+        })
+        .catch(err => {
+            return res.status(err.code).send({
+                good: false,
+                message: err.message
             });
         });
     })
@@ -613,40 +650,46 @@ router.route('/:identification/subjects')
         mdlCon.findOne(res, query, projection)
         .then(result => {
             if(!result) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'No class found!'
-                });
+                throw {
+                    message: 'No class found!',
+                    code: 404
+                }
             }
             let query2 = query;
             query2.subjects = {$elemMatch: {subject: req.body.shortname, profesor: req.body.username}};
-            mdlCon.findOne(res, query2, {subjects: 1})
-            .then(result => {
-                if(!result) {
-                    return res.status(400).send({
-                        good: false,
-                        message: 'That teacher doesn\'t teach that subject in this class!'
-                    });
+            return mdlCon.findOne(res, query2, {subjects: 1});
+        })
+        .then(result => {
+            if(!result) {
+                throw {
+                    message: 'That teacher doesn\'t teach that subject in this class!',
+                    code: 400
                 }
-                var object = {
-                    profesor: req.body.username,
-                    subject: req.body.shortname
-                };
-                mdlCon.UpdateArray({$pop:{subjects:object}}, res, query)
-                .then(result => {
-                    if(!result) {
-                        return res.status(404).send({
-                            good: false,
-                            message: 'No class was found!'
-                        });
-                    }
-                    else {
-                        return res.status(200).send({
-                            good: true,
-                            data: result
-                        });
-                    }
+            }
+            var object = {
+                profesor: req.body.username,
+                subject: req.body.shortname
+            };
+            return mdlCon.UpdateArray({$pop:{subjects:object}}, res, query);
+        })
+        .then(result => {
+            if(!result) {
+                throw {
+                    message: 'No class was found!',
+                    code: 404
+                }
+            }
+            else {
+                return res.status(200).send({
+                    good: true,
+                    data: result
                 });
+            }
+        })
+        .catch(err => {
+            return res.status(err.code).send({
+                good: false,
+                message: err.message
             });
         });
     });
@@ -665,98 +708,104 @@ router.get('/:identification/subjects/preput', (req, res) => {
     UmdlCon.find(res, query, projection)
     .then(result => {
         if(!result || result.length === 0) {
-            return res.status(404).send({
-                good: false,
-                message: 'There\'s no profesors you can add!'
-            });
+            throw {
+                message: 'There\'s no profesors you can add!',
+                code: 404
+            }
         }
         result = result.map(a => a.username);
-        SmdlCon.find(res, {profesors: {$in: result}}, projection)
-        .then(result1 => {
-            if(!result1) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'Didn\'t find any subjects for your profesors!'
-                });
+        return SmdlCon.find(res, {profesors: {$in: result}}, projection);
+    })
+    .then(result1 => {
+        if(!result1) {
+            throw {
+                message: 'Didn\'t find any subjects for your profesors!',
+                code: 404
             }
-            else {
-                var subjectlist = [];
-                var subjectprofesor = [];
-                var profesorlist = [];
-                var profesorsubject = [];
-                result1.forEach(elem => {
-                    elem.profesors.forEach(elem1 => {
-                        if(!profesorlist.includes(elem1)) {
-                            profesorlist.push(elem1);
-                            profesorsubject.push({
-                                profesor: elem1,
-                                subjects: [elem.shortname]
-                            });
-                        }
-                        else {
-                            let index = profesorlist.indexOf(elem1);
-                            profesorsubject[index].subjects.push(elem.shortname);
-                        }
-                    });
-                    subjectlist.push(elem.shortname);
-                    subjectprofesor.push({
-                        subject: elem.shortname,
-                        profesors: elem.profesors
-                    });
+        }
+        else {
+            var subjectlist = [];
+            var subjectprofesor = [];
+            var profesorlist = [];
+            var profesorsubject = [];
+            result1.forEach(elem => {
+                elem.profesors.forEach(elem1 => {
+                    if(!profesorlist.includes(elem1)) {
+                        profesorlist.push(elem1);
+                        profesorsubject.push({
+                            profesor: elem1,
+                            subjects: [elem.shortname]
+                        });
+                    }
+                    else {
+                        let index = profesorlist.indexOf(elem1);
+                        profesorsubject[index].subjects.push(elem.shortname);
+                    }
                 });
-                mdlCon.findOne(res, {name: req.params.identification}, {subjects:1})
-                .then(result => {
-                    if(!result) {
-                        return res.status(404).send({
-                            good: false,
-                            message: 'Didn\'t find the class you are looking for!'
-                        });
-                    }
-                    if(result.facility !== req.user.facility && req.user.accountType === 'Moderator') {
-                        return res.status(400).send({
-                            good: false,
-                            message: 'You can\'t edit a class that is not part of your facility!'
-                        });
-                    }
-                    result.subjects.forEach(element => {
-                        if(subjectlist.includes(element.subject)) {
-                            let index = subjectlist.indexOf(element.subject);
-                            if(subjectprofesor[index].profesors.includes(element.profesor)) {
-                                subjectprofesor[index].profesors.splice(subjectprofesor[index].profesors.indexOf(element.profesor), 1);
-                                if(subjectprofesor[index].profesors.length === 0) {
-                                    subjectprofesor.splice(index, 1);
-                                    subjectlist.splice(index, 1);
-                                }
-                            }
-                        }
-                        if(profesorlist.includes(element.profesor)) {
-                            let index = profesorlist.indexOf(element.profesor);
-                            if(profesorsubject[index].subjects.includes(element.subject)) {
-                                profesorsubject[index].subjects.splice(profesorsubject[index].subjects.indexOf(element.subject), 1);
-                                if(profesorsubject[index].subjects.length === 0) {
-                                    profesorsubject.splice(index, 1);
-                                    profesorlist.splice(index, 1);
-                                }
-                            }
-                        }
-                    });
-                    if(profesorsubject.length === 0 || subjectprofesor === 0) {
-                        return res.status(404).send({
-                            good: false,
-                            message: 'No profesors/subjects to add!'
-                        });
-                    }
-                    return res.status(200).send({
-                        good: true,
-                        data: {
-                            choices: {
-                                profesorsubject,
-                                subjectprofesor
-                            }
-                        }
-                    });
+                subjectlist.push(elem.shortname);
+                subjectprofesor.push({
+                    subject: elem.shortname,
+                    profesors: elem.profesors
                 });
+            });
+            return mdlCon.findOne(res, {name: req.params.identification}, {subjects:1});
+        }
+    })
+    .then(result => {
+        if(!result) {
+            throw {
+                message: 'Didn\'t find the class you are looking for!',
+                code: 404
             }
+        }
+        if(result.facility !== req.user.facility && req.user.accountType === 'Moderator') {
+            throw {
+                message: 'You can\'t edit a class that is not part of your facility!',
+                code: 400
+            }
+        }
+        result.subjects.forEach(element => {
+            if(subjectlist.includes(element.subject)) {
+                let index = subjectlist.indexOf(element.subject);
+                if(subjectprofesor[index].profesors.includes(element.profesor)) {
+                    subjectprofesor[index].profesors.splice(subjectprofesor[index].profesors.indexOf(element.profesor), 1);
+                    if(subjectprofesor[index].profesors.length === 0) {
+                        subjectprofesor.splice(index, 1);
+                        subjectlist.splice(index, 1);
+                    }
+                }
+            }
+            if(profesorlist.includes(element.profesor)) {
+                let index = profesorlist.indexOf(element.profesor);
+                if(profesorsubject[index].subjects.includes(element.subject)) {
+                    profesorsubject[index].subjects.splice(profesorsubject[index].subjects.indexOf(element.subject), 1);
+                    if(profesorsubject[index].subjects.length === 0) {
+                        profesorsubject.splice(index, 1);
+                        profesorlist.splice(index, 1);
+                    }
+                }
+            }
+        });
+        if(profesorsubject.length === 0 || subjectprofesor === 0) {
+            throw {
+                message: 'No profesors/subjects to add!',
+                code: 404
+            }
+        }
+        return res.status(200).send({
+            good: true,
+            data: {
+                choices: {
+                    profesorsubject,
+                    subjectprofesor
+                }
+            }
+        });
+    })
+    .catch(err => {
+        return res.status(err.code).send({
+            good: false,
+            message: err.message
         });
     });
 });
