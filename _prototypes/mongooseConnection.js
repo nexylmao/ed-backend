@@ -6,7 +6,12 @@ const EnviromentVariables = require('../_env/env');
 function Connection() {}
 Connection.prototype.Connect = (res, DatabaseName) => {
     return new Promise(resolve => {
-        mongoose.connect(EnviromentVariables.MONGODBPATH, {dbName: DatabaseName}, err => {
+        var option = {
+            dbName: DatabaseName,
+            server: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } },
+            replset: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } }
+        };
+        mongoose.connect(EnviromentVariables.MONGODBPATH, option, err => {
             if (err) {
                 var errHandler = new ErrorHandler();
                 errHandler.Handle(res,'Something went wrong while connecting to the database!', err);
