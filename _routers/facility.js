@@ -196,7 +196,7 @@ router.route('/:identification/profesors')
                 else {
                     mdlCon.UpdateArray({$push:{profesors:req.body.username}}, res, query)
                     .then(result2 => {
-                        UmdlCon.UpdateOne({body:{facility:req.params.id}}, res, result1)
+                        UmdlCon.UpdateOne({body:{facility:req.params.id}}, res, {username:req.body.username})
                         .then(result3 => {
                             return res.status(200).send({
                                 good: true,
@@ -251,21 +251,13 @@ router.route('/:identification/profesors')
             )) {
                 mdlCon.UpdateArray({$pullAll:{profesors:[req.query.username]}}, res, query)
                 .then(result => {
-                    if(!result) {
-                        return res.status(404).send({
-                            good: false,
-                            message: 'What happend?'
+                    UmdlCon.UpdateOne({body: {facility:''}}, res, {username: req.query.username})
+                    .then(result => {
+                        return res.status(200).send({
+                            good: true,
+                            data: result
                         });
-                    }
-                    else {
-                        UmdlCon.UpdateOne({body: {facility:''}}, res, {username: req.query.username})
-                        .then(result => {
-                            return res.status(200).send({
-                                good: true,
-                                data: result
-                            });
-                        });
-                    }
+                    });
                 });
             }
             else {
