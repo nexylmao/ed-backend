@@ -656,7 +656,7 @@ router.route('/:identification/subjects')
                 }
             }
             let query2 = query;
-            query2.subjects = {$elemMatch: {subject: req.body.shortname, profesor: req.body.username}};
+            query2.subjects = {$elemMatch: {subject: req.query.shortname, profesor: req.query.username}};
             return mdlCon.findOne(res, query2, {subjects: 1});
         })
         .then(result => {
@@ -667,10 +667,10 @@ router.route('/:identification/subjects')
                 }
             }
             var object = {
-                profesor: req.body.username,
-                subject: req.body.shortname
+                profesor: req.query.username,
+                subject: req.query.shortname
             };
-            return mdlCon.UpdateArray({$pop:{subjects:object}}, res, query);
+            return mdlCon.UpdateArray({$pullAll:{subjects:[object]}}, res, query);
         })
         .then(result => {
             if(!result) {
