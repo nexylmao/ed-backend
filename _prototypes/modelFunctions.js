@@ -26,13 +26,14 @@ ModelController.prototype.find = function(res, query, projection = {}){
             this.MongooseModel.find(query, projection)
             .then(result => {
                 resolve(result);
-                mngCon.Disconnect();
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while querying the database!', err);
-                mngCon.Disconnect();
             })
         })
+        .then(() => {
+            mngCon.Disconnect();
+        });
     });
 }
 ModelController.prototype.findOne = function(res, query, projection = {}){
@@ -42,13 +43,14 @@ ModelController.prototype.findOne = function(res, query, projection = {}){
             this.MongooseModel.findOne(query, projection)
             .then(result => {
                 resolve(result);
-                mngCon.Disconnect();
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while querying the database!', err);
-                mngCon.Disconnect();
             });
         })
+        .then(() => {
+            mngCon.Disconnect();
+        });
     });
 }
 ModelController.prototype.create = function(req, res){
@@ -58,13 +60,14 @@ ModelController.prototype.create = function(req, res){
             this.MongooseModel.create(req.body)
             .then(result => {
                 resolve(result);
-                mngCon.Disconnect();
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while inserting a document in the database!', err);
-                mngCon.Disconnect();
             });
         })
+        .then(() => {
+            mngCon.Disconnect();
+        });
     });
 }
 ModelController.prototype.Update = function(req, res, query){
@@ -74,13 +77,14 @@ ModelController.prototype.Update = function(req, res, query){
             this.MongooseModel.update(query, req.body, {new: true})
             .then(result => {
                 resolve(result);
-                mngCon.Disconnect();
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while updating a document in the database!', err);
-                mngCon.Disconnect();
             });
         })
+        .then(() => {
+            mngCon.Disconnect();
+        });
     });
 }
 ModelController.prototype.UpdateOne = function(req, res, query){
@@ -90,13 +94,14 @@ ModelController.prototype.UpdateOne = function(req, res, query){
             this.MongooseModel.findOneAndUpdate(query, req.body, {new: true})
             .then(result => {
                 resolve(result);
-                mngCon.Disconnect();
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while updating a document in the database!', err);
-                mngCon.Disconnect();
             });
         })
+        .then(() => {
+            mngCon.Disconnect();
+        });
     });
 }
 ModelController.prototype.UpdateArray = function(update, res, query){
@@ -106,13 +111,14 @@ ModelController.prototype.UpdateArray = function(update, res, query){
             this.MongooseModel.findOneAndUpdate(query, update)
             .then(result => {
                 resolve(result);
-                mngCon.Disconnect();
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while updating a document in the database!', err);
-                mngCon.Disconnect();
             });
         })
+        .then(() => {
+            mngCon.Disconnect();
+        });
     });
 }
 ModelController.prototype.DeleteOne = function(res, query){
@@ -122,13 +128,14 @@ ModelController.prototype.DeleteOne = function(res, query){
             this.MongooseModel.findOneAndRemove(query)
             .then(result => {
                 resolve(result);
-                mngCon.Disconnect();
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while deleting a document in the database!', err);
-                mngCon.Disconnect();
             });
         })
+        .then(() => {
+            mngCon.Disconnect();
+        });
     });
 }
 

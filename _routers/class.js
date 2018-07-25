@@ -716,8 +716,8 @@ router.get('/:identification/subjects/preput', (req, res) => {
         result = result.map(a => a.username);
         return SmdlCon.find(res, {profesors: {$in: result}}, projection);
     })
-    .then(result1 => {
-        if(!result1) {
+    .then(result => {
+        if(!result) {
             throw {
                 message: 'Didn\'t find any subjects for your profesors!',
                 code: 404
@@ -728,7 +728,7 @@ router.get('/:identification/subjects/preput', (req, res) => {
             var subjectprofesor = [];
             var profesorlist = [];
             var profesorsubject = [];
-            result1.forEach(elem => {
+            result.forEach(elem => {
                 elem.profesors.forEach(elem1 => {
                     if(!profesorlist.includes(elem1)) {
                         profesorlist.push(elem1);

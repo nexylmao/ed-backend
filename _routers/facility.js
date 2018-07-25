@@ -281,7 +281,7 @@ router.get('/:identification/profesors/preput', (req, res) => {
         });
     }
     else {
-        UmdlCon.find(res, {facility: ''}, projection)
+        UmdlCon.find(res, {facility: '', accountType: {$ne: 'Administrator'}}, projection)
         .then(result => {
             if(!result) {
                 return res.status(404).send({
