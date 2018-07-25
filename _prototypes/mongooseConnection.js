@@ -8,8 +8,8 @@ Connection.prototype.Connect = (res, DatabaseName) => {
     return new Promise(resolve => {
         var option = {
             dbName: DatabaseName,
-            server: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } },
-            replset: { socketOptions: { keepAlive: 1, connectTimeoutMS: 30000 } }
+            keepAlive: 1,
+            connectTimeoutMS: 30000
         };
         mongoose.connect(EnviromentVariables.MONGODBPATH, option, err => {
             if (err) {
