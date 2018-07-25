@@ -87,21 +87,7 @@ router.route('/:identification')
                 req.body.__v ||
                 req.body.shortname
                 )) {
-                    mdlCon.UpdateOne(req, res, query)
-                    .then(result => {
-                        if(!result) {
-                            return res.status(404).send({
-                                good: false,
-                                message: 'What happend?'
-                            });
-                        }
-                        else {
-                            return res.status(200).send({
-                                good: true,
-                                data: result
-                            });
-                        }
-                    });
+                    return mdlCon.UpdateOne(req, res, query);
                 }
                 else {
                     return res.status(401).send({
@@ -114,6 +100,20 @@ router.route('/:identification')
                 return res.status(401).send({
                     good: false,
                     message: 'You can\'t edit a facility you\'re not part of!'
+                });
+            }
+        })
+        .then(result => {
+            if(!result) {
+                return res.status(404).send({
+                    good: false,
+                    message: 'What happend?'
+                });
+            }
+            else {
+                return res.status(200).send({
+                    good: true,
+                    data: result
                 });
             }
         });
@@ -178,41 +178,39 @@ router.route('/:identification/profesors')
             (req.user.accountType === 'Moderator' &&
             req.user.facility === result.shortname
         )) {
-            var userQuery = {username: req.body.username};
-            UmdlCon.findOne(res, userQuery, projection)
-            .then(result1 => {
-                if (!result1) {
-                    return res.status(404).send({
-                        good: false,
-                        message: 'The user you are looking for doesn\'t exist!'
-                    });
-                }
-                if  (result1.accountType !== 'Profesor') {
-                    return res.status(400).send({
-                        good: false,
-                        message: 'That user is not a profesor!'
-                    });
-                }
-                else {
-                    mdlCon.UpdateArray({$push:{profesors:req.body.username}}, res, query)
-                    .then(result2 => {
-                        UmdlCon.UpdateOne({body:{facility:req.params.id}}, res, {username:req.body.username})
-                        .then(result3 => {
-                            return res.status(200).send({
-                                good: true,
-                                data: result3
-                            });
-                        });
-                    });
-                }
-            })
-        }
-        else {
+            return UmdlCon.findOne(res, {username: req.body.username}, projection);
+        } else {
             return res.status(401).send({
                 good: false,
                 message: 'You can\'t edit a facility you\'re not part of!'
             });
         }
+    })
+    .then(result => {
+        if (!result) {
+            return res.status(404).send({
+                good: false,
+                message: 'The user you are looking for doesn\'t exist!'
+            });
+        }
+        if  (result.accountType !== 'Profesor') {
+            return res.status(400).send({
+                good: false,
+                message: 'That user is not a profesor!'
+            });
+        }
+        else {
+            return mdlCon.UpdateArray({$push:{profesors:req.body.username}}, res, query);
+        }
+    })
+    .then(result => {
+        return UmdlCon.UpdateOne({body:{facility:req.params.id}}, res, {username:req.body.username});
+    })
+    .then(result => {
+        return res.status(200).send({
+            good: true,
+            data: result
+        });
     });
 })
 .delete((req, res) => {
@@ -237,35 +235,34 @@ router.route('/:identification/profesors')
                 message: 'The user you are looking for isn\'t a profesor!'
             });
         }
-        mdlCon.findOne(res, query, projection)
-        .then(result => {
-            if(!result.profesors.includes(req.query.username)) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'That profesor isn\'t part of this facility!'
-                });
-            }
-            if(req.user.accountType === 'Administrator' || 
-                (req.user.accountType === 'Moderator' &&
-                req.user.facility === result.shortname
-            )) {
-                mdlCon.UpdateArray({$pullAll:{profesors:[req.query.username]}}, res, query)
-                .then(result => {
-                    UmdlCon.UpdateOne({body: {facility:''}}, res, {username: req.query.username})
-                    .then(result => {
-                        return res.status(200).send({
-                            good: true,
-                            data: result
-                        });
-                    });
-                });
-            }
-            else {
-                return res.status(401).send({
-                    good: false,
-                    message: 'You can\'t edit a facility you\'re not part of!'
-                });
-            }
+        return mdlCon.findOne(res, query, projection);
+    })
+    .then(result => {
+        if(!result.profesors.includes(req.query.username)) {
+            return res.status(404).send({
+                good: false,
+                message: 'That profesor isn\'t part of this facility!'
+            });
+        }
+        if(req.user.accountType === 'Administrator' || 
+            (req.user.accountType === 'Moderator' &&
+            req.user.facility === result.shortname)) {
+            return mdlCon.UpdateArray({$pullAll:{profesors:[req.query.username]}}, res, query);
+        }
+        else {
+            return res.status(401).send({
+                good: false,
+                message: 'You can\'t edit a facility you\'re not part of!'
+            });
+        }
+    })
+    .then(result => {
+        return UmdlCon.UpdateOne({body: {facility:''}}, res, {username: req.query.username});
+    })
+    .then(result => {
+        return res.status(200).send({
+            good: true,
+            data: result
         });
     });
 })
