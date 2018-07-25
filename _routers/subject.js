@@ -266,7 +266,7 @@ router.route('/:identification/profesors')
                         message: 'That professor doesn\'t teach that subject!'
                     });
                 }
-                mdlCon.UpdateArray({$pullAll:{profesors:[result.username]}}, res, {shortname: req.params.identification})
+                mdlCon.UpdateArray({$pullAll:{profesors:[req.query.username]}}, res, {shortname: req.params.identification})
                 .then(result => {
                     if(!result) {
                         return res.status(404).send({
