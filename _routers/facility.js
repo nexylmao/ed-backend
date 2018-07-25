@@ -203,10 +203,12 @@ router.route('/:identification/profesors')
                             });
                         }
                         else {
-                            UmdlCon.UpdateOne({body:{facility:req.params.id}}, res, result);
-                            return res.status(200).send({
-                                good: true,
-                                data: result2
+                            UmdlCon.UpdateOne({body:{facility:req.params.id}}, res, result)
+                            .then(result => {
+                                return res.status(200).send({
+                                    good: true,
+                                    data: result2
+                                });
                             });
                         }
                     });
@@ -264,10 +266,12 @@ router.route('/:identification/profesors')
                         });
                     }
                     else {
-                        UmdlCon.UpdateOne({body: {facility:''}}, res, {username: req.query.username});
-                        return res.status(200).send({
-                            good: true,
-                            data: result
+                        UmdlCon.UpdateOne({body: {facility:''}}, res, {username: req.query.username})
+                        .then(result => {
+                            return res.status(200).send({
+                                good: true,
+                                data: result
+                            });
                         });
                     }
                 });
