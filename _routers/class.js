@@ -343,7 +343,7 @@ router.route('/:identification/students')
                             });
                         }
                         else {
-                            UmdlCon.UpdateOne({body:{class:result.name}}, res, {username: result1.username});
+                            UmdlCon.UpdateOne({body:{class:req.params.identification}}, res, {username: result1.username});
                             return res.status(200).send({
                                 good: true,
                                 data: result
