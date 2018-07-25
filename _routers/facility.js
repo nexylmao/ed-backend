@@ -180,14 +180,14 @@ router.route('/:identification/profesors')
         )) {
             var userQuery = {username: req.body.username};
             UmdlCon.findOne(res, userQuery, projection)
-            .then(result => {
-                if (!result) {
+            .then(result1 => {
+                if (!result1) {
                     return res.status(404).send({
                         good: false,
                         message: 'The user you are looking for doesn\'t exist!'
                     });
                 }
-                if  (result.accountType !== 'Profesor') {
+                if  (result1.accountType !== 'Profesor') {
                     return res.status(400).send({
                         good: false,
                         message: 'That user is not a profesor!'
@@ -196,21 +196,13 @@ router.route('/:identification/profesors')
                 else {
                     mdlCon.UpdateArray({$push:{profesors:req.body.username}}, res, query)
                     .then(result2 => {
-                        if(!result2) {
-                            return res.status(404).send({
-                                good: false,
-                                message: 'WHAAT?'
+                        UmdlCon.UpdateOne({body:{facility:req.params.id}}, res, result1)
+                        .then(result3 => {
+                            return res.status(200).send({
+                                good: true,
+                                data: result3
                             });
-                        }
-                        else {
-                            UmdlCon.UpdateOne({body:{facility:req.params.id}}, res, result)
-                            .then(result => {
-                                return res.status(200).send({
-                                    good: true,
-                                    data: result2
-                                });
-                            });
-                        }
+                        });
                     });
                 }
             })
