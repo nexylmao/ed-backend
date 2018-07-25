@@ -30,8 +30,7 @@ ModelController.prototype.find = function(res, query, projection = {}){
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while querying the database!', err);
-                mngCon.Disconnect();
-            })
+            });
         })
     });
 }
@@ -46,7 +45,6 @@ ModelController.prototype.findOne = function(res, query, projection = {}){
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while querying the database!', err);
-                mngCon.Disconnect();
             });
         })
     });
@@ -62,7 +60,6 @@ ModelController.prototype.create = function(req, res){
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while inserting a document in the database!', err);
-                mngCon.Disconnect();
             });
         })
     });
@@ -78,7 +75,6 @@ ModelController.prototype.Update = function(req, res, query){
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while updating a document in the database!', err);
-                mngCon.Disconnect();
             });
         })
     });
@@ -94,7 +90,6 @@ ModelController.prototype.UpdateOne = function(req, res, query){
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while updating a document in the database!', err);
-                mngCon.Disconnect();
             });
         })
     });
@@ -110,7 +105,6 @@ ModelController.prototype.UpdateArray = function(update, res, query){
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while updating a document in the database!', err);
-                mngCon.Disconnect();
             });
         })
     });
@@ -126,7 +120,6 @@ ModelController.prototype.DeleteOne = function(res, query){
             })
             .catch(err => {
                 errHndl.Handle(res, 'Something went wrong while deleting a document in the database!', err);
-                mngCon.Disconnect();
             });
         })
     });

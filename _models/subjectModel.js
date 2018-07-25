@@ -21,7 +21,7 @@ const _subject = new mongoose.Schema({
     },
     picture: {
         type: String,
-        default: 'http://conejovalleytutor.com/wp-content/uploads/2015/06/study-material-1.jpg'
+        default: 'http://picresize.com/images/rsz_study-material-1.jpg'
     },
     description: String
 },{collection:'Subjects'});
