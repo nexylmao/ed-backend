@@ -701,6 +701,10 @@ router.get('/:identification/subjects/preput', (req, res) => {
             message: 'You don\'t have permission for that!'
         });
     }
+    var subjectlist = [];
+    var subjectprofesor = [];
+    var profesorlist = [];
+    var profesorsubject = [];
     var query = {accountType: 'Profesor'};
     if(req.user.accountType === 'Moderator') {
         query.facility = req.user.facility;
@@ -723,33 +727,27 @@ router.get('/:identification/subjects/preput', (req, res) => {
                 code: 404
             }
         }
-        else {
-            var subjectlist = [];
-            var subjectprofesor = [];
-            var profesorlist = [];
-            var profesorsubject = [];
-            result.forEach(elem => {
-                elem.profesors.forEach(elem1 => {
-                    if(!profesorlist.includes(elem1)) {
-                        profesorlist.push(elem1);
-                        profesorsubject.push({
-                            profesor: elem1,
-                            subjects: [elem.shortname]
-                        });
-                    }
-                    else {
-                        let index = profesorlist.indexOf(elem1);
-                        profesorsubject[index].subjects.push(elem.shortname);
-                    }
-                });
-                subjectlist.push(elem.shortname);
-                subjectprofesor.push({
-                    subject: elem.shortname,
-                    profesors: elem.profesors
-                });
+        result.forEach(elem => {
+            elem.profesors.forEach(elem1 => {
+                if(!profesorlist.includes(elem1)) {
+                    profesorlist.push(elem1);
+                    profesorsubject.push({
+                        profesor: elem1,
+                        subjects: [elem.shortname]
+                    });
+                }
+                else {
+                    let index = profesorlist.indexOf(elem1);
+                    profesorsubject[index].subjects.push(elem.shortname);
+                }
             });
-            return mdlCon.findOne(res, {name: req.params.identification}, {subjects:1});
-        }
+            subjectlist.push(elem.shortname);
+            subjectprofesor.push({
+                subject: elem.shortname,
+                profesors: elem.profesors
+            });
+        });
+        return mdlCon.findOne(res, {name: req.params.identification}, {subjects:1});
     })
     .then(result => {
         if(!result) {
@@ -789,7 +787,7 @@ router.get('/:identification/subjects/preput', (req, res) => {
         if(profesorsubject.length === 0 || subjectprofesor === 0) {
             throw {
                 message: 'No profesors/subjects to add!',
-                code: 404
+                code: 400
             }
         }
         return res.status(200).send({
@@ -811,6 +809,9 @@ router.get('/:identification/subjects/preput', (req, res) => {
 });
 
 router.get('/:identification/subjects/predelete', (req, res) => {
+    var subjectprofesor = [];
+    var profesorlist = [];
+    var profesorsubject = [];
     if(req.user.accountType !== 'Administrator' && req.user.accountType !== 'Moderator') {
         return res.status(403).send({
             good: false,
@@ -831,9 +832,6 @@ router.get('/:identification/subjects/predelete', (req, res) => {
                 message: 'You can\'t edit a class that is not part of your facility!'
             });
         }
-        var subjectprofesor = [];
-        var profesorlist = [];
-        var profesorsubject = [];
         result.subjects.forEach(elem => {
             if(!profesorlist.includes(elem.profesor)) {
                 profesorlist.push(elem.profesor);
