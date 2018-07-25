@@ -203,7 +203,7 @@ router.route('/:identification/profesors')
                             });
                         }
                         else {
-                            UmdlCon.UpdateOne({body:{facility:result2.shortname}}, res, result);
+                            UmdlCon.UpdateOne({body:{facility:req.params.id}}, res, result);
                             return res.status(200).send({
                                 good: true,
                                 data: result2
