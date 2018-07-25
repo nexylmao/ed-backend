@@ -204,7 +204,7 @@ router.route('/:identification/profesors')
         }
     })
     .then(result => {
-        return UmdlCon.UpdateOne({body:{facility:req.params.id}}, res, {username:req.body.username});
+        return UmdlCon.UpdateOne({body:{facility:req.params.identification}}, res, {username:req.body.username});
     })
     .then(result => {
         return res.status(200).send({
