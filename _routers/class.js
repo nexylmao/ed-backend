@@ -397,7 +397,7 @@ router.route('/:identification/students')
                     code: 400
                 }
             }
-            return mdlCon.UpdateArray({$pullAll:{students:req.body.username}}, res, query);
+            return mdlCon.UpdateArray({$pullAll:{students:[req.body.username]}}, res, query);
         })
         .then(result => {
             if(!result) {
