@@ -435,7 +435,7 @@ router.route('/:identification/subjects')
                     code: 400
                 }
             }
-            if(result1.facility !== req.user.facility) {
+            if(result1.facility !== req.user.facility && req.user.accountType === 'Moderator') {
                 throw {
                     message: 'Profesor you provided is not a part of the facility you are!',
                     code: 400
@@ -463,6 +463,11 @@ router.route('/:identification/subjects')
                     profesor: req.body.username,
                     subject: req.body.shortname
                 };
+                let query = {name: req.params.identification, facility: req.user.facility};
+                if(req.user.accountType === 'Administrator'){
+                    query = {name: req.params.identification};
+                }
+                console.log(query);
                 return mdlCon.UpdateArray({$push:{subjects:object}}, res, query);
             }
         })
@@ -495,7 +500,7 @@ router.route('/:identification/subjects')
             });
         }
         mdlCon.setDBName(req.dbName);
-        var query = {name: req.params.identification, facility: req.user.facility};
+        var query = {name: req.params.identification, facility: req.user.facility, subjects: {$elemMatch: {subject: req.query.shortname, profesor: req.query.username}}};
         if(req.user.accountType === 'Administrator'){
             query = {name: req.params.identification};
         }
@@ -503,22 +508,11 @@ router.route('/:identification/subjects')
         .then(result => {
             if(!result) {
                 throw {
-                    message: 'No class found!',
-                    code: 404
-                }
-            }
-            let query2 = query;
-            query2.subjects = {$elemMatch: {subject: req.query.shortname, profesor: req.query.username}};
-            return mdlCon.findOne(res, query2, {subjects: 1});
-        })
-        .then(result => {
-            if(!result) {
-                throw {
                     message: 'That teacher doesn\'t teach that subject in this class!',
                     code: 400
                 }
             }
-            return mdlCon.UpdateArray({$pullAll:{subjects:[{$elemMatch:{profesor: req.query.username,subject: req.query.shortname}}]}}, res, query);
+            return mdlCon.Update({body:{$pull:{subjects:{profesor: req.query.username, subject: req.query.shortname}}}}, res, query);
         })
         .then(result => {
             if(!result) {

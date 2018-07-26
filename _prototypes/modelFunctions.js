@@ -68,7 +68,7 @@ ModelController.prototype.Update = function(req, res, query){
     return new Promise(resolve => {
         mngCon.Connect(res, this.MongoDatabaseName)
         .then(() => {
-            this.MongooseModel.update(query, req.body, {new: true})
+            this.MongooseModel.update(query, req.body, {new: true, multi: true})
             .then(result => {
                 resolve(result);
                 mngCon.Disconnect();
