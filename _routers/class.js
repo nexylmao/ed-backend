@@ -127,154 +127,6 @@ router.route('/my/classes')
         };
     });
 
-router.route('/:identification')
-    .get((req, res) => {
-        mdlCon.setDBName(req.dbName);
-        var query = {name: req.params.identification, facility: req.user.facility};
-        if(req.user.accountType === 'Administrator'){
-            query = {name: req.params.identification};
-        }
-        mdlCon.findOne(res, query, projection)
-        .then(result => {
-            if(!result) {
-                return res.status(404).send({
-                    good: false,
-                    message: 'No class found!'
-                });
-            }
-            return res.status(200).send({
-                good: true,
-                data: result
-            });
-        });
-    })
-    .put((req, res) => {
-        if(req.user.accountType !== 'Administrator' && req.user.accountType !== 'Moderator') {
-            return res.status(403).send({
-                good: false,
-                message: 'You don\'t have permission for that!'
-            });
-        }
-        mdlCon.setDBName(req.dbName);
-        var query = {name: req.params.identification, facility: req.user.facility};
-        if(req.user.accountType === 'Administrator'){
-            query = {name: req.params.identification};
-        }
-        mdlCon.findOne(res, query, projection)
-        .then(result1 => {
-            if(!result1) {
-                throw {
-                    message: 'No class found!',
-                    code: 404
-                }
-            }
-            if(req.user.accountType === 'Moderator' && req.user.facility !== result.facility) {
-                throw {
-                    message: 'You can\'t edit a class in facility you\'re not a part of!',
-                    code: 400
-                }
-            }
-            if(req.body._id ||
-            req.body.createdAt ||
-            req.body.updatedAt ||
-            req.body.__v ||
-            req.body.name ||
-            req.body.facility) {
-                throw {
-                    message: 'You can\'t do that!',
-                    code: 400
-                }
-            } 
-            else {
-                if(req.body.homeTeacher) {
-                    UmdlCon.findOne(res, {username: req.body.homeTeacher}, projection)
-                    .then(result2 => {
-                        if(!result2) {
-                            throw {
-                                message: 'The user you provided doesn\'t exist!',
-                                code: 404
-                            }
-                        }
-                        if(result2.accountType !== 'Profesor') {
-                            throw {
-                                message: 'The user you provided is not a profesor!',
-                                code: 400
-                            }
-                        }
-                        if(result2.facility !== result1.facility) {
-                            throw {
-                                message: 'You can\'t assign a profesor that\'s not a part of the classes facility!',
-                                code: 400
-                            }
-                        }
-                    });
-                }
-                return mdlCon.UpdateOne(req, res, query);
-            }
-        })
-        .then(result => {
-            return res.status(200).send({
-                good: true,
-                data: result
-            });
-        })
-        .catch(err => {
-            return res.status(err.code).send({
-                good: false,
-                message: err.message
-            });
-        });
-    })
-    .delete((req, res) => {
-        if(req.user.accountType !== 'Administrator' && req.user.accountType !== 'Moderator') {
-            return res.status(403).send({
-                good: false,
-                message: 'You don\'t have permission for that!'
-            });
-        }
-        mdlCon.setDBName(req.dbName);
-        var query = {name: req.params.identification, facility: req.user.facility};
-        if(req.user.accountType === 'Administrator'){
-            query = {name: req.params.identification};
-        }
-        mdlCon.findOne(res, query, projection)
-        .then(result1 => {
-            if(!result1) {
-                throw {
-                    code: 404,
-                    message: 'No class found!'
-                }
-            }
-            if(result1.facility !== req.user.facility && req.user.accountType === 'Moderator') {
-                throw {
-                    code: 400,
-                    message: 'You can\'t delete a class in facility you\'re not a part of!'
-                }
-            }
-            return mdlCon.DeleteOne(res, query);
-        })
-        .then(result => {
-            if(!result) {
-                throw {
-                    message: 'No class found!',
-                    code: 404
-                }
-            }
-            else {
-                return res.status(200).send({
-                    good: true,
-                    data: result
-                });
-            }
-        })
-        .catch(err => {
-            return res.status(err.code).send({
-                good: false,
-                message: err.message
-            });
-        });
-    })
-
 router.route('/:identification/students')
     .get((req, res) => {
         mdlCon.setDBName(req.dbName);
@@ -866,5 +718,153 @@ router.get('/:identification/subjects/predelete', (req, res) => {
         });
     });
 });
+
+router.route('/:identification')
+    .get((req, res) => {
+        mdlCon.setDBName(req.dbName);
+        var query = {name: req.params.identification, facility: req.user.facility};
+        if(req.user.accountType === 'Administrator'){
+            query = {name: req.params.identification};
+        }
+        mdlCon.findOne(res, query, projection)
+        .then(result => {
+            if(!result) {
+                return res.status(404).send({
+                    good: false,
+                    message: 'No class found!'
+                });
+            }
+            return res.status(200).send({
+                good: true,
+                data: result
+            });
+        });
+    })
+    .put((req, res) => {
+        if(req.user.accountType !== 'Administrator' && req.user.accountType !== 'Moderator') {
+            return res.status(403).send({
+                good: false,
+                message: 'You don\'t have permission for that!'
+            });
+        }
+        mdlCon.setDBName(req.dbName);
+        var query = {name: req.params.identification, facility: req.user.facility};
+        if(req.user.accountType === 'Administrator'){
+            query = {name: req.params.identification};
+        }
+        mdlCon.findOne(res, query, projection)
+        .then(result1 => {
+            if(!result1) {
+                throw {
+                    message: 'No class found!',
+                    code: 404
+                }
+            }
+            if(req.user.accountType === 'Moderator' && req.user.facility !== result.facility) {
+                throw {
+                    message: 'You can\'t edit a class in facility you\'re not a part of!',
+                    code: 400
+                }
+            }
+            if(req.body._id ||
+            req.body.createdAt ||
+            req.body.updatedAt ||
+            req.body.__v ||
+            req.body.name ||
+            req.body.facility) {
+                throw {
+                    message: 'You can\'t do that!',
+                    code: 400
+                }
+            } 
+            else {
+                if(req.body.homeTeacher) {
+                    UmdlCon.findOne(res, {username: req.body.homeTeacher}, projection)
+                    .then(result2 => {
+                        if(!result2) {
+                            throw {
+                                message: 'The user you provided doesn\'t exist!',
+                                code: 404
+                            }
+                        }
+                        if(result2.accountType !== 'Profesor') {
+                            throw {
+                                message: 'The user you provided is not a profesor!',
+                                code: 400
+                            }
+                        }
+                        if(result2.facility !== result1.facility) {
+                            throw {
+                                message: 'You can\'t assign a profesor that\'s not a part of the classes facility!',
+                                code: 400
+                            }
+                        }
+                    });
+                }
+                return mdlCon.UpdateOne(req, res, query);
+            }
+        })
+        .then(result => {
+            return res.status(200).send({
+                good: true,
+                data: result
+            });
+        })
+        .catch(err => {
+            return res.status(err.code).send({
+                good: false,
+                message: err.message
+            });
+        });
+    })
+    .delete((req, res) => {
+        if(req.user.accountType !== 'Administrator' && req.user.accountType !== 'Moderator') {
+            return res.status(403).send({
+                good: false,
+                message: 'You don\'t have permission for that!'
+            });
+        }
+        mdlCon.setDBName(req.dbName);
+        var query = {name: req.params.identification, facility: req.user.facility};
+        if(req.user.accountType === 'Administrator'){
+            query = {name: req.params.identification};
+        }
+        mdlCon.findOne(res, query, projection)
+        .then(result1 => {
+            if(!result1) {
+                throw {
+                    code: 404,
+                    message: 'No class found!'
+                }
+            }
+            if(result1.facility !== req.user.facility && req.user.accountType === 'Moderator') {
+                throw {
+                    code: 400,
+                    message: 'You can\'t delete a class in facility you\'re not a part of!'
+                }
+            }
+            return mdlCon.DeleteOne(res, query);
+        })
+        .then(result => {
+            if(!result) {
+                throw {
+                    message: 'No class found!',
+                    code: 404
+                }
+            }
+            else {
+                return res.status(200).send({
+                    good: true,
+                    data: result
+                });
+            }
+        })
+        .catch(err => {
+            return res.status(err.code).send({
+                good: false,
+                message: err.message
+            });
+        });
+    });
 
 module.exports = router;
