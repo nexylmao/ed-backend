@@ -446,7 +446,7 @@ router.get('/:identification/students/preput', (req, res) => {
                     code: 400
                 }
             }
-            var query = {username: {$nin: result.students}, class: ''};
+            var query = {username: {$nin: result.students}, class: '', accountType: 'Student'};
             if(req.user.accountType === 'Moderator') {
                 query.facility = req.user.facility;
             }
