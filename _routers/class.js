@@ -518,11 +518,7 @@ router.route('/:identification/subjects')
                     code: 400
                 }
             }
-            var object = {
-                profesor: req.query.username,
-                subject: req.query.shortname
-            };
-            return mdlCon.UpdateArray({$pullAll:{subjects:[object]}}, res, query);
+            return mdlCon.UpdateArray({$pullAll:{subjects:[{$elemMatch:{profesor: req.query.username,subject: req.query.shortname}}]}}, res, query);
         })
         .then(result => {
             if(!result) {
