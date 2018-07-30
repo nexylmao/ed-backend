@@ -92,8 +92,10 @@ router.route('/my/classes')
             if(req.user.accountType === 'Student') {
                 return res.status(200).send({
                     good: true,
-                    classes: [req.user.class],
-                    years
+                    data : {
+                        classes: [req.user.class],
+                        years
+                    }
                 });
             }
             if(req.user.accountType === 'Parent') {
@@ -102,8 +104,10 @@ router.route('/my/classes')
                     result = result.map(a => a.name);
                     return res.status(200).send({
                         good: true,
-                        classes: _.uniq(result),
-                        years
+                        data : {
+                            classes: _.uniq(result),
+                            years
+                        }
                     });
                 });
             };
@@ -113,8 +117,10 @@ router.route('/my/classes')
                     result = result.map(a => a.name);
                     return res.status(200).send({
                         good: true,
-                        classes: _.uniq(result),
-                        years
+                        data : {
+                            classes: _.uniq(result),
+                            years
+                        }
                     });
                 });
             };
@@ -124,8 +130,10 @@ router.route('/my/classes')
                     result = result.map(a => a.name);
                     return res.status(200).send({
                         good: true,
-                        classes: _.uniq(result),
-                        years
+                        data : {
+                            classes: _.uniq(result),
+                            years
+                        }
                     });
                 });
             };
@@ -135,8 +143,10 @@ router.route('/my/classes')
                     result = result.map(a => a.name);
                     return res.status(200).send({
                         good: true,
-                        classes: _.uniq(result),
-                        years
+                        data : {
+                            classes: _.uniq(result),
+                            years
+                        }
                     });
                 });
             };
