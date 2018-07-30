@@ -4,11 +4,13 @@ const _ = require('underscore');
 const Class = require('../_models/classModel');
 const User = require('../_models/userModel');
 const Subject = require('../_models/subjectModel');
+const SchoolYear = require('../_models/schoolYearsModel');
 const ModelController = require('../_prototypes/modelFunctions');
 const Methods = require('../_methods/methods');
 const mdlCon = new ModelController(Class, Methods.getDatabaseName(Methods.currentYearRange()));
 const UmdlCon = new ModelController(User, Methods.user());
 const SmdlCon = new ModelController(Subject, Methods.getDatabaseName(Methods.currentYearRange()));
+const YmdlCon = new ModelController(SchoolYear, Methods.data());
 const projection = {_id:0, createdAt:0, updatedAt:0, __v:0};
 
 router.route('/')
@@ -79,52 +81,70 @@ router.route('/')
 router.route('/my/classes')
     .get((req, res) => {
         mdlCon.setDBName(req.dbName);
-        if(req.user.accountType === 'Student') {
-            return res.status(200).send({
-                good: true,
-                data: [req.user.class]
-            });
-        }
-        if(req.user.accountType === 'Parent') {
-            UmdlCon.find(res, {username: {$in: req.user.children}}, projection)
-            .then(result => {
-                result = result.map(a => a.name);
+        YmdlCon.find(res, {}, {yearRange:1, active:1})
+        .then(years => {
+            if(!years) {
+                return res.status(404).send({
+                    good: false,
+                    message: 'No School Years found!'
+                });
+            }
+            if(req.user.accountType === 'Student') {
                 return res.status(200).send({
                     good: true,
-                    data: _.uniq(result)
+                    classes: [req.user.class],
+                    years
                 });
-            });
-        };
-        if(req.user.accountType === 'Profesor') {
-            mdlCon.find(res, {subjects: {$elemMatch: {profesor: req.user.username}}}, projection)
-            .then(result => {
-                result = result.map(a => a.name);
-                return res.status(200).send({
-                    good: true,
-                    data: _.uniq(result)
+            }
+            if(req.user.accountType === 'Parent') {
+                UmdlCon.find(res, {username: {$in: req.user.children}}, projection)
+                .then(result => {
+                    result = result.map(a => a.name);
+                    return res.status(200).send({
+                        good: true,
+                        classes: _.uniq(result),
+                        years
+                    });
                 });
-            });
-        };
-        if(req.user.accountType === 'Moderator') {
-            mdlCon.find(res, {facility: req.user.facility}, projection)
-            .then(result => {
-                result = result.map(a => a.name);
-                return res.status(200).send({
-                    good: true,
-                    data: _.uniq(result)
+            };
+            if(req.user.accountType === 'Profesor') {
+                mdlCon.find(res, {subjects: {$elemMatch: {profesor: req.user.username}}}, projection)
+                .then(result => {
+                    result = result.map(a => a.name);
+                    return res.status(200).send({
+                        good: true,
+                        classes: _.uniq(result),
+                        years
+                    });
                 });
-            });
-        };
-        if(req.user.accountType === 'Administrator') {
-            mdlCon.find(res, {}, projection)
-            .then(result => {
-                result = result.map(a => a.name);
-                return res.status(200).send({
-                    good: true,
-                    data: _.uniq(result)
+            };
+            if(req.user.accountType === 'Moderator') {
+                mdlCon.find(res, {facility: req.user.facility}, projection)
+                .then(result => {
+                    result = result.map(a => a.name);
+                    return res.status(200).send({
+                        good: true,
+                        classes: _.uniq(result),
+                        years
+                    });
                 });
-            });
-        };
+            };
+            if(req.user.accountType === 'Administrator') {
+                mdlCon.find(res, {}, projection)
+                .then(result => {
+                    result = result.map(a => a.name);
+                    return res.status(200).send({
+                        good: true,
+                        classes: _.uniq(result),
+                        years
+                    });
+                });
+            };
+            // return res.status(200).send({
+            //     good: true,
+            //     data: years
+            // });
+        });
     });
 
 router.route('/:identification/students')
