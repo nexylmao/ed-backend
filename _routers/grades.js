@@ -35,7 +35,11 @@ router.route('/')
         }
         if(req.user.accountType === 'Profesor') {
             usernames = req.class.students;
-            query = {givenTo: {$in: usernames}, givenBy: req.user.username};
+            if(req.class.homeTeacher === req.user.username) {
+                query = {givenTo: {$in: usernames}};
+            } else {
+                query = {givenTo: {$in: usernames}, givenBy: req.user.username};   
+            }
         }
         if(req.user.accountType === 'Moderator' || req.user.accountType === 'Administrator') {
             usernames = req.class.students;
